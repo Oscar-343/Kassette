@@ -54,6 +54,13 @@ Paleta oscura con verde fósforo (#3DDC84), tipografías VT323 y Space Mono aloj
 cassette con dos carretes que giran mientras suena, textura de grano y botones con relieve.
 Respeta prefers-reduced-motion.
 
+INICIO Y RESPONSIVO
+La página de Inicio muestra una lista global con todas las canciones, ordenadas por artista, álbum y
+pista, con un botón para reproducir todo. Bibliotecas, Álbum y Artista siguen mostrando la jerarquía.
+El sistema se adapta a celulares y pantallas angostas (hasta 800 px): la barra lateral pasa arriba como
+una barra horizontal, el reproductor se reorganiza en dos filas, se oculta la columna Álbum y el panel
+de la cola ocupa la pantalla (se cierra con el botón Cola). Está en wwwroot/css/responsive.css.
+
 CONFIGURACION
 Los datos externos se configuran con variables de entorno (ver 05). Si no hay MongoDB configurado,
 el sistema arranca con un catálogo de demostración de solo lectura y reproducción simulada.

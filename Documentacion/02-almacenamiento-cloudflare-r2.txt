@@ -43,7 +43,7 @@ Ver 05-despliegue-en-render.txt. Variables: R2__AccountId, R2__AccessKeyId, R2__
 R2__Bucket, R2__PublicBaseUrl. Las claves NUNCA se suben a GitHub.
 
 LIMITES CONOCIDOS
-- El panel no borra archivos de R2. Si necesitas quitar una canción, bórrala en el panel de Cloudflare
-  y en MongoDB Atlas, y reinicia el servicio.
+- Al eliminar una canción desde el panel se borra su MP3 de R2 y, si ningún otro tema la usa, su portada.
+  Si el borrado en R2 falla, el archivo queda suelto en el bucket y se puede quitar a mano.
 - Si falla el guardado en MongoDB después de subir el archivo, puede quedar un archivo huérfano en R2.
 - Solo música con licencia libre (Creative Commons, dominio público o propia).

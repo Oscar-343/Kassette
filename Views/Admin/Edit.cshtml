@@ -1,0 +1,12 @@
+@model Song
+<h1>Editar canción</h1>
+<p class="dim">Para cambiar el audio, elimina la canción y vuelve a subirla.</p>
+<form class="admin" asp-controller="Admin" asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" data-ajax>
+  <label>Título<input name="title" required maxlength="100" value="@Model.Title"></label>
+  <label>Artista<input name="artist" required maxlength="100" value="@Model.Artist"></label>
+  <label>Álbum<input name="album" required maxlength="100" value="@Model.Album"></label>
+  <label>Número de pista<input type="number" name="track" min="0" max="999" value="@Model.Track"></label>
+  <label>Nueva portada (JPG o PNG, opcional)<input type="file" name="cover" accept="image/jpeg,image/png"></label>
+  <button class="btn main" type="submit">Guardar cambios</button>
+  <a data-nav class="btn" href="/Admin">Cancelar</a>
+</form>

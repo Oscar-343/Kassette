@@ -95,6 +95,75 @@ public class AdminController(IServiceProvider sp, ISongRepository repo, IFileSto
         return RedirectToAction(nameof(Index));
     }
 
+    [HttpGet]
+    public IActionResult Edit(int id)
+    {
+        var song = repo.GetById(id);
+        return song == null ? NotFound() : View(song);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken, RequestSizeLimit(10_000_000)]
+    public async Task<IActionResult> Edit(int id, string? title, string? artist, string? album, int track, IFormFile? cover)
+    {
+        var catalog = Catalog;
+        if (catalog == null) return Fail("MongoDB no está configurado.");
+        title = (title ?? "").Trim(); artist = (artist ?? "").Trim(); album = (album ?? "").Trim();
+        if (title.Length is 0 or > 100 || artist.Length is 0 or > 100 || album.Length is 0 or > 100)
+            return Fail("Título, artista y álbum son obligatorios (máximo 100 caracteres).");
+        try
+        {
+            string? newCover = null;
+            if (cover is { Length: > 0 })
+            {
+                if (cover.Length > MaxCover) return Fail("La portada pesa más de 3 MB.");
+                var ext = CoverExt(await Head(cover, 4));
+                if (ext == null) return Fail("La portada debe ser JPG o PNG.");
+                await using var s = cover.OpenReadStream();
+                newCover = await storage.UploadAsync($"covers/{Slug(artist)}/{Slug(album)}-{Guid.NewGuid().ToString("N")[..8]}{ext}", s,
+                    ext == ".png" ? "image/png" : "image/jpeg");
+            }
+            var res = await catalog.UpdateAsync(id, new SongEdit(title, artist, album, Math.Clamp(track, 0, 999), newCover));
+            if (res == null) return Fail("La canción ya no existe.");
+            await TryDelete(res.OrphanCoverUrl); // la portada anterior, si nadie más la usa
+            TempData["Ok"] = $"«{res.Song.Title}» actualizada.";
+        }
+        catch (Exception ex)
+        {
+            log.LogError(ex, "Error al editar canción");
+            return Fail("No se pudo guardar el cambio.");
+        }
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var catalog = Catalog;
+        if (catalog == null) return Fail("MongoDB no está configurado.");
+        try
+        {
+            var res = await catalog.DeleteAsync(id);
+            if (res == null) return Fail("La canción ya no existe.");
+            await TryDelete(res.AudioUrl);
+            await TryDelete(res.OrphanCoverUrl);
+            TempData["Ok"] = "Canción eliminada.";
+        }
+        catch (Exception ex)
+        {
+            log.LogError(ex, "Error al eliminar canción");
+            return Fail("No se pudo eliminar la canción.");
+        }
+        return RedirectToAction(nameof(Index));
+    }
+
+    // Borrar el archivo es "mejor esfuerzo": si falla, la canción ya salió del catálogo y solo queda un archivo suelto
+    private async Task TryDelete(string? url)
+    {
+        if (string.IsNullOrEmpty(url)) return;
+        try { await storage.DeleteAsync(url); }
+        catch (Exception ex) { log.LogWarning(ex, "No se pudo borrar el archivo {Url}", url); }
+    }
+
     private IActionResult Fail(string msg) { TempData["Error"] = msg; return RedirectToAction(nameof(Index)); }
 
     private static async Task<byte[]> Head(IFormFile f, int n)

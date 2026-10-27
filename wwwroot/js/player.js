@@ -2,7 +2,7 @@
 (() => {
   const $ = s => document.querySelector(s);
   const audio = new Audio();
-  let st = null, loadedNonce = -1, simT = 0, simTimer = null;
+  let st = null, loadedNonce = -1, simT = 0, simTimer = null, errors = 0;
   const fmt = s => (!isFinite(s) || s <= 0) ? '0:00' : Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
   const hasAudio = () => st && st.current && st.current.url;
 
@@ -53,6 +53,9 @@
   audio.addEventListener('timeupdate', () => progress(audio.currentTime, audio.duration));
   audio.addEventListener('loadedmetadata', () => progress(audio.currentTime, audio.duration));
   audio.addEventListener('ended', () => api('next?auto=true'));
+  audio.addEventListener('playing', () => { errors = 0; });
+  // Si un archivo ya no existe (por ejemplo, se eliminó), se salta a la siguiente; máximo 3 seguidas
+  audio.addEventListener('error', () => { if (hasAudio() && ++errors <= 3) api('next'); });
 
   $('#bPlay').onclick = () => api('toggle');
   $('#bNext').onclick = () => api('next');
@@ -70,8 +73,14 @@
 
   // Navegación sin recargar la página, para que la música no se corte
   async function go(url, push = true) {
-    const r = await fetch(url, { headers: { 'X-Requested-With': 'fetch' } });
-    $('#content').innerHTML = await r.text();
+    let html;
+    try {
+      const r = await fetch(url, { headers: { 'X-Requested-With': 'fetch' } });
+      if (!r.ok) throw new Error(r.status);
+      html = await r.text();
+    } catch { location.href = url; return; } // si falla, navegación normal
+    $('#content').innerHTML = html;
+    $('#content').scrollTop = 0;
     if (push) history.pushState({}, '', url);
     markNav(); if (st) render();
   }

@@ -23,10 +23,23 @@
 }
 <h2>Canciones en el catálogo (@Model.Length)</h2>
 @if (Model.Length == 0) { <p class="empty">Todavía no hay canciones.</p> } else {
-<table class="songs">
+<div class="tablewrap">
+<table class="songs adm">
   @foreach (var s in Model) {
-    <tr><td class="n">@s.Track</td><td><b>@s.Title</b></td><td class="dim">@s.Artist</td><td class="dim">@s.Album</td><td class="dim">@LibraryExtensions.Fmt(s.Duration)</td></tr>
+    <tr>
+      <td class="n">@s.Track</td>
+      <td><b>@s.Title</b></td>
+      <td class="dim">@s.Artist</td>
+      <td class="dim">@s.Album</td>
+      <td class="act">
+        <a data-nav class="btn" href="@Url.Action("Edit", "Admin", new { id = s.Id })">Editar</a>
+        <form asp-controller="Admin" asp-action="Delete" asp-route-id="@s.Id" method="post" data-ajax data-confirm="¿Eliminar «@s.Title»? También se borra su archivo de audio.">
+          <button class="btn danger" type="submit">Eliminar</button>
+        </form>
+      </td>
+    </tr>
   }
 </table>
+</div>
 }
 <form asp-controller="Admin" asp-action="Logout" method="post" data-ajax><button class="btn" type="submit">Cerrar sesión</button></form>

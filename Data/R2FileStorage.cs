@@ -36,4 +36,12 @@ public class R2FileStorage : IFileStorage
         await _s3.PutObjectAsync(req);
         return _publicBase + "/" + string.Join("/", key.Split('/').Select(Uri.EscapeDataString));
     }
+
+    public async Task DeleteAsync(string url)
+    {
+        var prefix = _publicBase + "/";
+        if (!url.StartsWith(prefix, StringComparison.Ordinal)) return; // no es un archivo de este bucket
+        var key = string.Join("/", url[prefix.Length..].Split('/').Select(Uri.UnescapeDataString));
+        await _s3.DeleteObjectAsync(_bucket, key);
+    }
 }

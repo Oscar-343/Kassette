@@ -14,6 +14,7 @@
   document.addEventListener('submit', async e => {
     const form = e.target.closest('form[data-ajax]'); if (!form) return;
     e.preventDefault();
+    if (form.dataset.confirm && !confirm(form.dataset.confirm)) return; // eliminar pide confirmación
     const btn = form.querySelector('button[type=submit]');
     if (btn) { btn.disabled = true; btn.textContent = 'Enviando…'; }
     try {

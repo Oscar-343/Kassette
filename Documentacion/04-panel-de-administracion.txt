@@ -26,6 +26,18 @@ QUE PASA POR DETRAS
    Si no había nada sonando, esa canción empieza a sonar.
 La canción aparece de inmediato en Inicio, Bibliotecas, Álbum, Artista y Playlist.
 
+EDITAR Y ELIMINAR
+En la lista "Canciones en el catálogo" cada fila tiene dos botones:
+- Editar: cambia título, artista, álbum, número de pista y, si quieres, la portada. Si cambias el
+  artista o el álbum, la canción se mueve en la biblioteca (el árbol se reconstruye). El audio no
+  se cambia: para eso se elimina la canción y se vuelve a subir. La portada anterior se borra de R2
+  si ninguna otra canción la usa.
+- Eliminar: pide confirmación y borra la canción de MongoDB y su MP3 de Cloudflare R2. La portada
+  se borra solo si ningún otro tema del álbum la usa (las portadas se comparten dentro de un álbum).
+Si alguien tenía la canción eliminada en su cola, el reproductor la salta sola al no encontrar el archivo.
+Borrar el archivo de R2 es "mejor esfuerzo": si falla, la canción ya no está en el catálogo y solo
+queda un archivo suelto en el bucket que puedes borrar a mano.
+
 SEGURIDAD
 - Contraseña por variable de entorno, comparada en tiempo constante.
 - Cookie de sesión cifrada y token antifalsificación en cada formulario.
@@ -34,7 +46,6 @@ SEGURIDAD
 - Usa una contraseña larga: el enlace es público.
 
 LIMITES CONOCIDOS
-- No hay botón para editar ni borrar canciones. Para quitar una, bórrala en MongoDB Atlas y en R2 y
-  reinicia el servicio.
+- No se puede reemplazar el audio de una canción existente (se elimina y se vuelve a subir).
 - Sin R2 configurado, los archivos van al disco local (solo para pruebas en tu computador): en Render
   se perderían al reiniciar.
