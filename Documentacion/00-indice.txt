@@ -1,0 +1,39 @@
+KASSETTE - DOCUMENTACION
+========================
+
+Archivos de esta carpeta:
+
+  00-indice.txt                  Este índice y la lista de archivos de la actualización.
+  01-base-de-datos-mongodb.txt   Qué base de datos usamos, para qué, y por qué no guarda la música.
+  02-almacenamiento-cloudflare-r2.txt
+                                 Dónde se guardan los MP3 y las portadas, y los problemas que descartamos.
+  03-funcionamiento-del-sistema.txt
+                                 Cómo funciona todo: capas, estructuras de datos, flujo de una canción.
+  04-panel-de-administracion.txt Cómo se agregan canciones y cómo se protege el panel.
+  05-despliegue-en-render.txt    Paso a paso para publicar el sistema y las variables de entorno.
+
+Archivos que trae la actualización (se extraen dentro de la carpeta del proyecto, donde está Kassette.csproj):
+
+  NUEVOS
+    Dockerfile, .dockerignore, .gitignore
+    Data/ISongCatalog.cs            Interfaces del catálogo con altas y del almacenamiento de archivos
+    Data/MongoSongRepository.cs     Catálogo en MongoDB
+    Data/R2FileStorage.cs           Subida de archivos a Cloudflare R2
+    Data/LocalFileStorage.cs        Subida a disco local (solo desarrollo)
+    Services/PlayerRegistry.cs      Un reproductor por navegador
+    Controllers/AdminController.cs  Panel de administración
+    Views/Admin/Index.cshtml, Views/Admin/Login.cshtml
+    wwwroot/css/admin.css, wwwroot/js/admin.js
+    Documentacion/*
+
+  REEMPLAZAN A LOS ANTERIORES
+    Kassette.csproj                 Agrega los paquetes MongoDB.Driver y AWSSDK.S3
+    appsettings.json                Agrega las secciones Mongo, R2 y Admin (vacías)
+    Program.cs                      Registro de servicios, autenticación del panel, puerto de Render
+    Controllers/PlayerController.cs Usa el reproductor del navegador que hace la petición
+    Views/Shared/_Layout.cshtml     Enlace "Administración" y los nuevos CSS/JS
+    Views/Shared/_SongTable.cshtml  Mensaje de lista vacía
+    wwwroot/js/player.js            Escucha el evento de actualización tras subir una canción
+    README.md
+
+No se borra nada: FolderSongRepository.cs queda como catálogo de demostración cuando no hay MongoDB.

@@ -1,0 +1,5 @@
+@model TreeNode<LibraryItem>
+@{ var songs = Model.Songs(); }
+<h1>Playlist: todas las canciones</h1>
+<p><button class="btn main" data-playall="@string.Join(",", songs.Select(s => s.Id))">▶ Reproducir todo</button></p>
+<partial name="_SongTable" model="songs" />

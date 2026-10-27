@@ -1,0 +1,32 @@
+@model Song[]
+<h1>Administración</h1>
+<p class="dim">El MP3 y la portada se guardan en <b>@ViewBag.Storage</b> y los datos de la canción en MongoDB.</p>
+@if (TempData["Ok"] is string ok) { <p class="notice ok">@ok</p> }
+@if (TempData["Error"] is string err) { <p class="notice err">@err</p> }
+@if (!(bool)ViewBag.CatalogReady) {
+  <p class="notice err">MongoDB no está configurado (variable Mongo__ConnectionString). Sin él no se pueden agregar canciones.</p>
+} else {
+  <h2>Agregar canción</h2>
+  <form class="admin" asp-controller="Admin" asp-action="Add" method="post" enctype="multipart/form-data" data-ajax>
+    <label>Título<input name="title" required maxlength="100"></label>
+    <label>Artista<input name="artist" list="artists" required maxlength="100"></label>
+    <label>Álbum<input name="album" list="albums" required maxlength="100"></label>
+    <label>Número de pista<input type="number" name="track" min="0" max="999" value="1"></label>
+    <label>Archivo MP3 (hasta 25 MB)<input type="file" name="audio" accept=".mp3,audio/mpeg" required></label>
+    <label>Portada (JPG o PNG, opcional)<input type="file" name="cover" accept="image/jpeg,image/png"></label>
+    <input type="hidden" name="duration" value="0">
+    <label class="check"><input type="checkbox" name="enqueue" value="true" checked> Agregar también a la cola</label>
+    <button class="btn main" type="submit">Subir canción</button>
+  </form>
+  <datalist id="artists">@foreach (var a in Model.Select(s => s.Artist).Distinct()) { <option value="@a"></option> }</datalist>
+  <datalist id="albums">@foreach (var a in Model.Select(s => s.Album).Distinct()) { <option value="@a"></option> }</datalist>
+}
+<h2>Canciones en el catálogo (@Model.Length)</h2>
+@if (Model.Length == 0) { <p class="empty">Todavía no hay canciones.</p> } else {
+<table class="songs">
+  @foreach (var s in Model) {
+    <tr><td class="n">@s.Track</td><td><b>@s.Title</b></td><td class="dim">@s.Artist</td><td class="dim">@s.Album</td><td class="dim">@LibraryExtensions.Fmt(s.Duration)</td></tr>
+  }
+</table>
+}
+<form asp-controller="Admin" asp-action="Logout" method="post" data-ajax><button class="btn" type="submit">Cerrar sesión</button></form>

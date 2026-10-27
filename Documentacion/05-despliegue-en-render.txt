@@ -1,0 +1,58 @@
+DESPLIEGUE EN RENDER
+====================
+
+Render no ejecuta .NET de forma nativa: se publica con Docker (ya incluido en el archivo Dockerfile).
+
+PASO 1 - MONGODB ATLAS
+1. Crea una cuenta en MongoDB Atlas y un clúster gratuito (M0).
+2. En "Database Access" crea un usuario con contraseña.
+3. En "Network Access" permite el acceso desde Render. Con el plan gratuito Render no tiene una IP fija,
+   así que normalmente se habilita 0.0.0.0/0; la protección es la contraseña del usuario (usa una larga).
+4. En "Connect" copia la cadena de conexión (mongodb+srv://...) y reemplaza <password>.
+
+PASO 2 - CLOUDFLARE R2
+1. En el panel de Cloudflare entra a R2 y crea un bucket (por ejemplo, kassette).
+2. Activa el acceso público del bucket (dirección r2.dev o un dominio propio) y copia esa URL base.
+3. Crea un token de API de R2 con permiso de lectura y escritura sobre el bucket. Guarda el
+   Access Key ID y el Secret Access Key (el secreto solo se muestra una vez).
+4. Copia tu Account ID (aparece en la página de R2).
+
+PASO 3 - SUBIR EL CODIGO A GITHUB
+Sube el proyecto (con el Dockerfile). El archivo .gitignore ya excluye bin, obj y
+appsettings.Development.json. NUNCA subas contraseñas ni claves.
+
+PASO 4 - RENDER
+1. New + > Web Service, conecta el repositorio de GitHub.
+2. Language: Docker. Instance type: Free.
+3. En Environment agrega estas variables:
+
+   Mongo__ConnectionString   cadena de Atlas (con la contraseña)
+   Mongo__Database           kassette
+   R2__AccountId             tu Account ID
+   R2__AccessKeyId           clave de acceso del token
+   R2__SecretAccessKey       clave secreta del token
+   R2__Bucket                nombre del bucket
+   R2__PublicBaseUrl         URL pública del bucket, sin barra final
+   Admin__Password           contraseña del panel
+
+   (El doble guion bajo equivale a los dos puntos de appsettings.json: Mongo__Database = Mongo:Database.)
+4. Pulsa Deploy. Render asigna el puerto con la variable PORT y el sistema ya la lee.
+5. Abre el enlace onrender.com, entra a /Admin y sube tu primera canción.
+
+PRUEBA EN LOCAL ANTES DE DESPLEGAR
+Define las mismas variables en tu computador (o con "dotnet user-secrets") y ejecuta "dotnet run".
+Sin MongoDB, el sistema arranca con el catálogo de demostración.
+
+TENER EN CUENTA (plan gratuito de Render)
+- El servicio se duerme tras 15 minutos sin tráfico y tarda hasta un minuto en despertar. Abre el
+  enlace unos minutos antes de una demostración.
+- Las colas en curso viven en memoria y se pierden al dormir o reiniciar. El catálogo y los archivos
+  no, porque están en MongoDB y R2.
+- Los servicios gratuitos tienen horas mensuales limitadas.
+
+SI ALGO FALLA
+- "No se pudo guardar la canción": revisa las variables R2__ y Mongo__ y que el bucket sea público.
+- Error de firma o de suma de verificación al subir a R2: el código ya la desactiva para R2; si
+  persiste, actualiza el paquete AWSSDK.S3 y revisa que la clave tenga permiso de escritura.
+- El panel dice "desactivado": falta Admin__Password.
+- La app no inicia: casi siempre es una cadena de Mongo incorrecta o un acceso de red de Atlas sin permitir.

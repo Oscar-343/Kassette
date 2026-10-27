@@ -1,0 +1,49 @@
+ALMACENAMIENTO DE ARCHIVOS: CLOUDFLARE R2
+=========================================
+
+QUE ES Y QUE HACE EN KASSETTE
+Cloudflare R2 es almacenamiento de objetos (archivos) en la nube. Aquí se guardan los MP3 y las portadas
+que se suben desde el panel de administración. Cada archivo recibe una URL pública. Esa URL se guarda
+en MongoDB (AudioUrl y CoverUrl) y el navegador la reproduce directamente con la etiqueta <audio>.
+
+POR QUE R2
+- Los archivos se conservan para siempre, aunque Render reinicie o duerma el servicio.
+- Plan gratuito: 10 GB de almacenamiento, un millón de escrituras y diez millones de lecturas al mes,
+  y SIN cobro por descargas (egress). Cada reproducción descarga el MP3, así que esto importa.
+- Usa la API de S3, de modo que se maneja con un paquete conocido (AWSSDK.S3).
+- El audio no pasa por nuestro servidor: el navegador lo pide directo a Cloudflare, así que no depende
+  de que Render esté despierto, y los saltos en la barra de progreso funcionan.
+- Revisa al registrarte si Cloudflare te pide una tarjeta: esas condiciones pueden cambiar.
+
+PROBLEMAS ANTERIORES Y COMO SE RESOLVIERON
+1) Disco de Render efímero. En el plan gratuito, lo que se escribe en el disco se pierde al
+   redesplegar, reiniciar o dormir el servicio. Un MP3 subido desde el panel desaparecería.
+   Solución: guardar los archivos fuera de Render, en R2.
+2) YouTube. Se consideró usar enlaces de YouTube. Se descartó: su reproductor incrustado debe ser visible
+   (mínimo 200x200 px) y esconderlo para dejar solo el audio incumple sus términos y puede dejar de
+   funcionar. Además, no es la forma de "reproducir archivos" que pidió el docente.
+3) GitHub. Se descartó como servidor de audio: no está pensado para streaming y tiene límites por
+   archivo y de tráfico.
+4) Firebase Storage. Desde febrero de 2026 exige el plan Blaze (tarjeta de crédito) para crear un bucket.
+5) MongoDB para guardar los archivos. Descartado por el límite de 512 MB y el peso de la base (ver 01).
+6) Disco persistente de Render. Resuelve el borrado, pero solo existe en planes de pago.
+
+ALTERNATIVAS EQUIVALENTES
+Backblaze B2 (10 GB gratis, descargas gratuitas hasta 3 veces lo almacenado) y Supabase Storage (1 GB,
+máximo 50 MB por archivo). Cambiar de servicio solo requiere escribir otra clase que implemente
+IFileStorage; el resto del sistema no se entera.
+
+COMO SE ORDENAN LOS ARCHIVOS EN EL BUCKET
+  music/{artista}/{album}/{pista}-{titulo}-{id}.mp3
+  covers/{artista}/{album}-{id}.jpg
+Los nombres se limpian (sin tildes ni símbolos) y llevan un id corto para que dos subidas nunca se pisen.
+
+COMO CONFIGURARLO
+Ver 05-despliegue-en-render.txt. Variables: R2__AccountId, R2__AccessKeyId, R2__SecretAccessKey,
+R2__Bucket, R2__PublicBaseUrl. Las claves NUNCA se suben a GitHub.
+
+LIMITES CONOCIDOS
+- El panel no borra archivos de R2. Si necesitas quitar una canción, bórrala en el panel de Cloudflare
+  y en MongoDB Atlas, y reinicia el servicio.
+- Si falla el guardado en MongoDB después de subir el archivo, puede quedar un archivo huérfano en R2.
+- Solo música con licencia libre (Creative Commons, dominio público o propia).

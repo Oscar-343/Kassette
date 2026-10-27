@@ -1,0 +1,40 @@
+PANEL DE ADMINISTRACION
+=======================
+
+DIRECCION
+  /Admin   (también está el enlace "Administración" en la barra lateral)
+
+ACCESO
+Se entra con una contraseña única definida en la variable de entorno Admin__Password.
+Si la variable no existe, el panel queda desactivado (nadie puede entrar). La sesión dura 4 horas.
+
+COMO AGREGAR UNA CANCION
+1. Entra a /Admin e inicia sesión.
+2. Completa título, artista, álbum y número de pista. Artista y álbum sugieren los que ya existen.
+3. Elige el archivo MP3 (hasta 25 MB) y, si quieres, la portada (JPG o PNG, hasta 3 MB).
+   Si el álbum ya tiene portada y no subes otra, se reutiliza.
+4. Deja marcada "Agregar también a la cola" si quieres que entre al final de "A continuación".
+5. Pulsa "Subir canción".
+
+QUE PASA POR DETRAS
+1. El navegador lee la duración del MP3 y la envía junto con el formulario.
+2. El servidor valida: campos obligatorios, tamaño, extensión y la firma real del archivo (que de verdad
+   sea un MP3, JPG o PNG), no solo el nombre.
+3. Sube el MP3 y la portada a Cloudflare R2 y obtiene sus URLs.
+4. Inserta el documento en MongoDB y cuelga la canción en el árbol de la biblioteca en memoria.
+5. Si marcaste la casilla, la encola con la operación Enqueue de TU reproductor.
+   Si no había nada sonando, esa canción empieza a sonar.
+La canción aparece de inmediato en Inicio, Bibliotecas, Álbum, Artista y Playlist.
+
+SEGURIDAD
+- Contraseña por variable de entorno, comparada en tiempo constante.
+- Cookie de sesión cifrada y token antifalsificación en cada formulario.
+- Límite de tamaño y verificación de tipo de archivo.
+- Los nombres de archivo se limpian y llevan un id aleatorio: no se pueden pisar ni escribir fuera del bucket.
+- Usa una contraseña larga: el enlace es público.
+
+LIMITES CONOCIDOS
+- No hay botón para editar ni borrar canciones. Para quitar una, bórrala en MongoDB Atlas y en R2 y
+  reinicia el servicio.
+- Sin R2 configurado, los archivos van al disco local (solo para pruebas en tu computador): en Render
+  se perderían al reiniciar.

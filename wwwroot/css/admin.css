@@ -1,0 +1,8 @@
+form.admin{display:grid;gap:12px;max-width:520px;margin:12px 0 28px}
+form.admin label{display:grid;gap:4px;color:var(--dim)}
+form.admin label.check{display:flex;gap:8px;align-items:center}
+form.admin input:not([type=checkbox]){font:inherit;color:var(--text);background:var(--elev);border:1px solid var(--border);padding:8px}
+form.admin input:focus{border-color:var(--accent)}
+.notice{padding:10px 14px;border:1px solid var(--border);background:var(--surface);max-width:520px}
+.notice.ok{border-color:var(--accent);color:var(--accent)}
+.notice.err{border-color:#c0504d;color:#e8a09e}

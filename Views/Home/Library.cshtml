@@ -1,0 +1,15 @@
+@model TreeNode<LibraryItem>
+<h1>Bibliotecas</h1>
+<p class="dim">Árbol Artista → Álbum → Canción, recorrido con recursividad.</p>
+@foreach (var a in Model.Children()) {
+  <section class="block">
+    <h2><a data-nav href="@Url.Action("Artist", "Home", new { name = a.Value.Name })">@a.Value.Name</a>
+      <span class="dim">@a.CountWhere(i => i.Kind == ItemKind.Song) canciones · @LibraryExtensions.Fmt(a.Sum(i => i.Song?.Duration ?? 0))</span></h2>
+    <ul class="tree">
+    @foreach (var al in a.Children()) {
+      <li><a data-nav href="@Url.Action("Album", "Home", new { artist = a.Value.Name, name = al.Value.Name })">@al.Value.Name</a>
+        <span class="dim">@al.CountWhere(i => i.Kind == ItemKind.Song) canciones</span></li>
+    }
+    </ul>
+  </section>
+}

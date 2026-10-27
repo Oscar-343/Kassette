@@ -1,0 +1,59 @@
+FUNCIONAMIENTO DEL SISTEMA
+==========================
+
+VISION GENERAL
+Kassette es un reproductor web hecho con ASP.NET Core MVC (.NET 10). La lógica vive en el servidor C#.
+El navegador solo reproduce el audio y pide acciones al servidor mediante una API JSON.
+
+  Navegador (Razor + CSS + JS)  <--API JSON-->  Servidor C#  --->  MongoDB Atlas (catálogo)
+          |                                                         
+          +---- reproduce el audio directo desde ---------------->  Cloudflare R2 (MP3 y portadas)
+
+CAPAS Y CARPETAS
+  Controllers/      Controladores delgados (HomeController, PlayerController, AdminController).
+  DataStructures/   Estructuras de datos hechas desde cero, sin depender de MVC.
+  Services/         PlayerService (lógica del reproductor) y PlayerRegistry (uno por navegador).
+  Data/             Interfaces y acceso a datos: MongoDB, Cloudflare R2, catálogo de demostración.
+  Models/           Song y LibraryItem.
+  Views/            Páginas Razor.
+  wwwroot/          CSS, JavaScript, fuentes.
+  Kassette.Tests/   Pruebas xUnit de cada estructura.
+
+ESTRUCTURAS DE DATOS (todas implementadas desde cero)
+  Pila (MyStack)                 Historial y botón "anterior".
+  Cola (MyQueue)                 "A continuación": la siguiente canción sale del frente (FIFO).
+  Lista doblemente enlazada      Guarda la playlist actual y se recorre en ambos sentidos.
+  Lista circular                 Modo "repetir todo": la última canción apunta a la primera.
+  Buffer circular                Últimas 10 canciones escuchadas; al llenarse sobrescribe la más antigua.
+  Árbol n-ario (TreeNode)        Biblioteca Artista -> Álbum -> Canción.
+  Recursividad                   Recorrer el árbol, contar canciones, sumar duración y buscar nodos.
+  Fisher-Yates                   El modo aleatorio reordena la cola con este algoritmo.
+Cada operación indica su complejidad en un comentario y los casos borde lanzan InvalidOperationException.
+
+QUE HACE CADA BOTON
+  Reproducir una canción   Se carga la lista como contexto; lo que sigue entra en la cola.
+  Siguiente                Saca el frente de la cola. Si está vacía y repetir = todo, se arma una vuelta
+                           completa con la lista circular. Si repetir = una, se repite la misma.
+  Anterior                 Saca de la pila del historial. La canción actual vuelve al frente de la cola.
+  + cola                   Agrega la canción al final de la cola.
+  Aleatorio                Reordena con Fisher-Yates lo que queda en la cola.
+  Repetir                  Alterna no -> todo -> una.
+  Botón "Cola"             Muestra la cola, el historial (pila) y las últimas escuchadas (buffer circular).
+
+UN REPRODUCTOR POR NAVEGADOR
+Cada navegador recibe una cookie (kassette_sid) y PlayerRegistry le da su propio PlayerService.
+Así, dos personas con el mismo enlace no comparten la cola. El estado está en memoria: si Render
+duerme o reinicia el servicio, las colas en curso se pierden (es normal en una demostración).
+
+NAVEGACION SIN CORTAR LA MUSICA
+Las páginas se piden con fetch y solo se reemplaza el contenido central; el reproductor de abajo
+nunca se recarga, así que la música sigue sonando al cambiar de página.
+
+DISEÑO
+Paleta oscura con verde fósforo (#3DDC84), tipografías VT323 y Space Mono alojadas en el proyecto,
+cassette con dos carretes que giran mientras suena, textura de grano y botones con relieve.
+Respeta prefers-reduced-motion.
+
+CONFIGURACION
+Los datos externos se configuran con variables de entorno (ver 05). Si no hay MongoDB configurado,
+el sistema arranca con un catálogo de demostración de solo lectura y reproducción simulada.

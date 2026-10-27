@@ -1,0 +1,13 @@
+@model TreeNode<LibraryItem>
+@{ var albums = Model.Children().SelectMany(a => a.Children().Select(al => (artist: a.Value.Name, node: al))).ToArray(); }
+<h1>Inicio</h1>
+<p class="dim">@Model.CountWhere(i => i.Kind == ItemKind.Artist) artistas · @Model.CountWhere(i => i.Kind == ItemKind.Album) álbumes · @Model.CountWhere(i => i.Kind == ItemKind.Song) canciones</p>
+<div class="grid">
+@foreach (var x in albums) {
+  var songs = x.node.Songs();
+  <a data-nav class="card" href="@Url.Action("Album", "Home", new { artist = x.artist, name = x.node.Value.Name })">
+    <partial name="_Cover" model='songs.Select(s => s.Cover).FirstOrDefault(c => c != null) ?? ""' />
+    <b>@x.node.Value.Name</b><span class="dim">@x.artist</span>
+  </a>
+}
+</div>

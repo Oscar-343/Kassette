@@ -1,0 +1,9 @@
+@model TreeNode<LibraryItem>
+@{ var songs = Model.Songs(); }
+<div class="head">
+  <partial name="_Cover" model='songs.Select(s => s.Cover).FirstOrDefault(c => c != null) ?? ""' />
+  <div><h1>@Model.Value.Name</h1>
+    @if (songs.Length > 0) { <a data-nav class="dim" href="@Url.Action("Artist", "Home", new { name = songs[0].Artist })">@songs[0].Artist</a> }
+    <p><button class="btn main" data-playall="@string.Join(",", songs.Select(s => s.Id))">▶ Reproducir álbum</button></p></div>
+</div>
+<partial name="_SongTable" model="songs" />

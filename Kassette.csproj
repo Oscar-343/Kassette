@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Kassette.Tests/**" />
+    <Content Remove="Kassette.Tests/**" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- MongoDB: catálogo. AWSSDK.S3: Cloudflare R2 usa la API compatible con S3 -->
+    <PackageReference Include="MongoDB.Driver" Version="3.*" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.*" />
+  </ItemGroup>
+</Project>

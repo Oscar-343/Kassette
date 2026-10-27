@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kassette</title>
+  <link rel="stylesheet" href="~/css/site.css">
+  <link rel="stylesheet" href="~/css/admin.css">
+</head>
+<body>
+  <aside class="side">
+    <div class="logo">KASSETTE</div>
+    <nav>
+      <a data-nav href="/">Inicio</a>
+      <a data-nav href="/Home/Library">Bibliotecas</a>
+      <a data-nav href="/Home/Playlist">Playlist</a>
+      <a data-nav href="/Admin">Administración</a>
+    </nav>
+    <p class="dim small">Cada botón del reproductor usa una estructura de datos hecha desde cero.</p>
+  </aside>
+  <main id="content">@RenderBody()</main>
+
+  <aside id="drawer" class="drawer" hidden>
+    <h3>A continuación <span class="dim">(cola)</span></h3><ol id="lQueue"></ol>
+    <h3>Historial <span class="dim">(pila)</span></h3><ol id="lHistory"></ol>
+    <h3>Últimas escuchadas <span class="dim">(buffer circular)</span></h3><ol id="lRecent"></ol>
+  </aside>
+
+  <footer id="player" class="player">
+    <div class="deck">
+      <div class="tape"><div class="reel"></div><div class="window"></div><div class="reel"></div></div>
+      <div id="coverBox" class="cover def">♪</div>
+      <div class="meta"><div id="title" class="ttl">Nada sonando</div><div id="artist" class="dim">Elige una canción</div></div>
+    </div>
+    <div class="ctrl">
+      <div class="row">
+        <button class="btn" id="bShuffle" title="Aleatorio">Aleatorio</button>
+        <button class="btn" id="bPrev" title="Anterior">|◀</button>
+        <button class="btn main" id="bPlay" title="Reproducir / pausar">▶</button>
+        <button class="btn" id="bNext" title="Siguiente">▶|</button>
+        <button class="btn" id="bRepeat" title="Repetir">Repetir: no</button>
+      </div>
+      <div class="row"><span id="tCur" class="time">0:00</span>
+        <input id="seek" type="range" min="0" max="1000" value="0" aria-label="Progreso">
+        <span id="tTot" class="time">0:00</span></div>
+    </div>
+    <div class="right">
+      <button class="btn" id="bQueue">Cola</button>
+      <input id="vol" type="range" min="0" max="100" value="80" aria-label="Volumen">
+    </div>
+  </footer>
+  <script src="~/js/player.js"></script>
+  <script src="~/js/admin.js"></script>
+</body>
+</html>

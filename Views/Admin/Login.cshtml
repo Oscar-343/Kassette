@@ -1,0 +1,7 @@
+<h1>Administración</h1>
+<p class="dim">Acceso solo para quien sube canciones.</p>
+@if (ViewBag.Error is string e) { <p class="notice err">@e</p> }
+<form class="admin" asp-controller="Admin" asp-action="Login" method="post" data-ajax>
+  <label>Contraseña<input type="password" name="password" required autofocus></label>
+  <button class="btn main" type="submit">Entrar</button>
+</form>

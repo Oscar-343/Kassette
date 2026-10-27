@@ -1,0 +1,15 @@
+@model Song[]
+@if (Model.Length == 0) { <p class="empty">Aún no hay canciones. Súbelas desde <a data-nav href="/Admin">Administración</a>.</p> }
+else {
+<table class="songs" data-ids="@string.Join(",", Model.Select(s => s.Id))">
+  @foreach (var s in Model) {
+    <tr class="song" data-id="@s.Id">
+      <td class="n">@s.Track</td>
+      <td><b>@s.Title</b><br><span class="dim">@s.Artist</span></td>
+      <td class="dim">@s.Album</td>
+      <td class="dim">@LibraryExtensions.Fmt(s.Duration)</td>
+      <td><button class="btn q" title="Agregar a la cola">+ cola</button></td>
+    </tr>
+  }
+</table>
+}

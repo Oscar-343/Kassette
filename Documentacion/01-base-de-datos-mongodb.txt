@@ -1,0 +1,52 @@
+BASE DE DATOS: MONGODB
+======================
+
+QUE ES Y QUE HACE EN KASSETTE
+MongoDB es una base de datos de documentos (parecidos a JSON). En Kassette guarda el CATALOGO:
+un documento por canción, con estos campos:
+
+  Title, Artist, Album, Track, Duration, AudioUrl, CoverUrl, CreatedAt
+
+AudioUrl y CoverUrl son direcciones (texto) que apuntan a los archivos en Cloudflare R2.
+La base solo guarda texto y números; los archivos no están ahí.
+
+COMO SE USA
+Al iniciar, el sistema lee todo el catálogo una vez y lo arma en memoria como un árbol n-ario
+(Artista -> Álbum -> Canción). A partir de ahí, la biblioteca se recorre con recursividad sobre ese árbol.
+Cuando se agrega una canción desde el panel, se inserta en MongoDB y también en el árbol, sin reiniciar.
+Leer una vez al iniciar evita consultar la base en cada clic y cuida las cuotas del plan gratuito.
+
+POR QUE MONGODB
+- Los datos son jerárquicos (artista, álbum, canción) y se guardan como documentos simples, sin
+  tablas relacionadas ni uniones.
+- Lo recomendó el docente.
+- Hay un driver oficial para .NET (MongoDB.Driver).
+- MongoDB Atlas tiene un nivel gratuito permanente (M0, 512 MB), alojado en la nube. Eso importa porque
+  el sistema se despliega en Render y no puede depender de una base instalada en un computador local.
+- El catálogo son unas 30 canciones: unos pocos KB de texto. Sobra espacio.
+- El acceso está detrás de la interfaz ISongRepository, así que cambiar de base solo toca una clase.
+
+POR QUE NO GUARDAMOS LA MUSICA EN MONGODB
+- Un MP3 pesa varios MB. Con 512 MB de límite en el plan gratuito, unas pocas decenas de canciones
+  llenarían la base, y si se llena fallan las escrituras.
+- MongoDB limita cada documento a 16 MB; para archivos grandes habría que usar GridFS, que añade
+  complejidad sin ventaja para nuestro caso.
+- Una base cargada de archivos binarios es más lenta y más difícil de respaldar.
+- Para servir audio al navegador es mejor una dirección directa a un archivo, no pasar cada reproducción
+  por el servidor y la base.
+Por eso la música va en Cloudflare R2 (ver 02).
+
+ALTERNATIVAS QUE SE ANALIZARON
+- SQLite: es un archivo en el disco. En Render el disco es efímero: se pierde al redesplegar, reiniciar o
+  cuando el servicio se duerme. Descartada.
+- MySQL: Render no ofrece MySQL gratuito; habría que pagar un disco persistente. Descartada.
+- PostgreSQL de Render (gratis): expira a los 30 días de crearse. Descartada.
+- Firebase Firestore: habría funcionado, pero se eligió MongoDB por la recomendación del docente.
+
+COMO CONFIGURARLO
+Ver 05-despliegue-en-render.txt. Variables: Mongo__ConnectionString y Mongo__Database.
+La cadena de conexión contiene la contraseña: NUNCA se sube a GitHub.
+
+LIMITES CONOCIDOS
+- El catálogo se carga al iniciar: si editas MongoDB a mano, reinicia el servicio para verlo.
+- Se asume una sola instancia del servidor (plan gratuito de Render).
